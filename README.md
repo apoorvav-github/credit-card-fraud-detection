@@ -20,7 +20,7 @@ credit-card-fraud-detection/
 │   ├── data_utils.py
 │   └── strategy.py
 ├── data/
-│   └── processed/
+│   └── raw/creditcard.csv
 ├── results/
 ├── requirements.txt
 └── .gitignore
