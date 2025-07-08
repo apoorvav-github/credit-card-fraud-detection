@@ -1,0 +1,7 @@
+{
+    "data_path": "/Users/apoorvavaidya/Desktop/FLM/credit-card-fraud-detection/data/raw/creditcard.csv",
+    "rounds": 10,
+    "clients": 3,
+    "strategy": "async",
+    "iid": true
+}
