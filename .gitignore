@@ -16,6 +16,7 @@ env/
 .vscode/
 
 # Data files (keep raw data out of Git)
+data/raw/creditcard.csv
 data/processed/
 
 # Logs and TensorBoard
