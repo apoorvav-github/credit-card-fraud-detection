@@ -16,7 +16,6 @@ env/
 .vscode/
 
 # Data files (keep raw data out of Git)
-data/raw/
 data/processed/
 
 # Logs and TensorBoard
