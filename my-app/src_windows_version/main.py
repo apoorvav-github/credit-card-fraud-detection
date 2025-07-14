@@ -100,6 +100,12 @@ def main():
         test_loader = client_test_loaders[cid_int]
         return FLClient(cid=cid, train_loader=train_loader, test_loader=test_loader)
 
+    # def client_fn(ctx: Context):
+    #     cid_int = int(ctx.client_id)
+    #     train_loader = client_train_loaders[cid_int]
+    #     test_loader = client_test_loaders[cid_int]
+    #     return FLClient(cid=ctx.client_id, train_loader=train_loader, test_loader=test_loader)
+
     fl.simulation.start_simulation(
         client_fn=client_fn,
         num_clients=args.clients,
