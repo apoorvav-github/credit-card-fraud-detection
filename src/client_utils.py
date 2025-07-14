@@ -65,7 +65,6 @@ def evaluate_model(net: nn.Module, loader: DataLoader, device: torch.device) -> 
     acc = accuracy_score(ys, (np.array(ps) > 0.5).astype(int))
     loss = 1.0 - auc  # Example loss (could use BCE or other if preferred)
     metrics = {"auc": auc, "accuracy": acc}
-    print(f"Evaluation - Loss: {loss:.4f}, AUC: {auc:.4f}, Accuracy: {acc:.4f}")
     return loss, metrics
 
 # ----------------------- Flower Client -----------------------
