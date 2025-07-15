@@ -47,7 +47,7 @@ python .\src\main.py --data-path=<path_to_your_data> --clients 3 --rounds 2 --st
 - `--clients`: Number of federated clients
 - `--rounds`: Number of FL rounds
 - `--strategy`: FL strategy (`sync`, `async`, `hybrid`)
-- `--iid`: Use IID data split
+- `--distribution`: Use IID/Non-IID data split (iid", "non-iid-weak", "non-iid-medium", "non-iid-strong")
 
 ### 4. Results
 
