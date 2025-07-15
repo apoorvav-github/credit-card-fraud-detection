@@ -1,5 +1,6 @@
 import argparse
 import torch
+import numpy as np
 import json
 import os
 from datetime import datetime
@@ -12,9 +13,9 @@ from strategy import get_strategy
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 
-def create_experiment_folder(base_dir="results", clients=3, strategy="sync", iid=True):
+def create_experiment_folder(base_dir="results", clients=3, strategy="sync", distribution="iid"):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    folder_name = f"exp_{timestamp}_clients{clients}_strategy{strategy}_iid{iid}"
+    folder_name = f"exp_{timestamp}_clients{clients}_strategy{strategy}_dist-{distribution}"
     path = os.path.join(base_dir, folder_name)
     os.makedirs(path, exist_ok=True)
     return path
@@ -46,30 +47,29 @@ def parse_args():
     parser.add_argument("--rounds", type=int, default=5)
     parser.add_argument("--clients", type=int, default=3)
     parser.add_argument("--strategy", type=str, choices=["sync", "async", "hybrid"], default="sync")
-    parser.add_argument("--iid", action="store_true")
+    # parser.add_argument("--iid", action="store_true")
+    parser.add_argument("--distribution", type=str, default="iid",
+        choices=["iid", "non-iid-weak", "non-iid-medium", "non-iid-strong"],
+        help="Data distribution type across clients")
+
     return parser.parse_args()
+
 
 # ✅ This is the new main() required by flwr run
 def main():
-    try:
-        # existing code here
-        print("Starting simulation")
-        ...
-    except Exception as e:
-        print(f"Error occurred: {e}")
-        
+
     args = parse_args()
 
     results_folder = create_experiment_folder(
         clients=args.clients,
         strategy=args.strategy,
-        iid=args.iid
+        distribution=args.distribution
     )
     save_config(vars(args), results_folder)
     print(f"Experiment results will be saved in: {results_folder}")
 
     X, y = load_and_preprocess(args.data_path)
-    client_datasets, central_test = split_data(X, y, n_clients=args.clients, iid=args.iid)
+    client_datasets, central_test = split_data(X, y, n_clients=args.clients, distribution=args.distribution)
 
     client_train_loaders = {}
     client_test_loaders = {}
@@ -91,7 +91,9 @@ def main():
     strategy = get_strategy(
         name=args.strategy,
         min_fit_clients=args.clients,
-        min_available_clients=args.clients
+        min_available_clients=args.clients,
+        # evaluate_fn=evaluate_fn,
+        results_folder="results"
     )
 
     def client_fn(cid: str):
@@ -110,7 +112,7 @@ def main():
         client_fn=client_fn,
         num_clients=args.clients,
         config=fl.server.ServerConfig(num_rounds=args.rounds),
-        strategy=strategy,
+        strategy=strategy
     )
 if __name__ == "__main__":
     main()
