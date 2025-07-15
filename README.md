@@ -41,7 +41,7 @@ Place your dataset in a suitable location. The script expects a data path via `-
 ### 3. Run the simulation
 
 ```bash
-python src/main.py --data-path <path_to_your_data> --clients 3 --rounds 5 --strategy sync --iid
+python .\src\main.py --data-path=<path_to_your_data> --clients 3 --rounds 2 --strategy sync --distribution non-iid-weak
 ```
 
 - `--clients`: Number of federated clients
