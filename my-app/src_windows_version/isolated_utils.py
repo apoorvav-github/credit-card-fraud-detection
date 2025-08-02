@@ -1,5 +1,5 @@
 """
-Utilities for isolated training analysis and visualization
+Utilities for isolated training analysis and visualization end to end flow
 """
 import json
 import os

@@ -49,12 +49,12 @@ python .\src\main.py --data-path=<path_to_your_data> --clients 3 --rounds 2 --st
 - `--strategy`: FL strategy (`sync`, `async`, `hybrid`)
 - `--distribution`: Use IID/Non-IID data split (iid", "non-iid-weak", "non-iid-medium", "non-iid-strong")
 
-federated training :
+federated training command:
 ```bash
 python main.py --data-path <data_path> --rounds 10 --clients 3 --strategy sync --distribution iid
 ```
 
-isolated training :
+isolated training command:
 ```bash
 python main.py --data-path <data_path> --rounds 10 --clients 3 --strategy async --distribution iid --isolated
 ```
