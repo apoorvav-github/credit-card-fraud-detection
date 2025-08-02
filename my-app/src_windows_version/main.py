@@ -155,10 +155,10 @@ def main():
 
     # Choose between isolated and federated training
     if args.isolated:
-        print("=== Running Isolated Training ===")
+        print("=== Running Isolated Training Mode===")
         run_isolated_training(args, client_train_loaders, client_test_loaders, results_folder)
     else:
-        print("=== Running Federated Learning ===")
+        print("=== Running Federated Learning Mode===")
         strategy = get_strategy(
             name=args.strategy,
             min_fit_clients=args.clients,
