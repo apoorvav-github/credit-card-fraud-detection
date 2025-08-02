@@ -1,11 +1,19 @@
+
 import flwr as fl
 from flwr.server.strategy import FedAvg
 import os
 import json
 import torch
 import numpy as np
-from model import FraudDetectionModel,set_parameters
+from model import FraudDetectionModel, set_parameters
 from torch.utils.data import DataLoader
+
+# FedProxStrategy: Inherits from FedAvg, adds mu (proximal term coefficient)
+class FedProxStrategy(FedAvg):
+    def __init__(self, mu=0.0, **kwargs):
+        super().__init__(**kwargs)
+        self.mu = mu
+    # Optionally, override methods to log or pass mu to clients if needed
 
 class SimpleAsyncFedAvg(FedAvg):
     def __init__(self, **kwargs):
@@ -100,6 +108,9 @@ def evaluate_fn(server_round, parameters, config,results_folder="results"):
 """
 def get_strategy(name="sync", fraction_fit=1.0, min_fit_clients=3, min_available_clients=3, evaluate_fn=None, results_folder="results"):
     
+    # For FedProx, you may want to set mu here or pass as an argument
+    fedprox_mu = 0.01  # Default value, can be parameterized
+
     if name == "sync":
         return LoggingStrategy(
             fraction_fit=1.0,
@@ -123,6 +134,22 @@ def get_strategy(name="sync", fraction_fit=1.0, min_fit_clients=3, min_available
             min_available_clients=min_available_clients,
             # evaluate_fn=evaluate_fn,
             results_folder="results"
+        )
+    elif name == "fedavg":
+        return FedAvg(
+            fraction_fit=fraction_fit,
+            min_fit_clients=min_fit_clients,
+            min_available_clients=min_available_clients,
+            # evaluate_fn=evaluate_fn,
+        )
+    elif name == "fedprox":
+        return FedProxStrategy(
+            mu=fedprox_mu,
+            fraction_fit=fraction_fit,
+            min_fit_clients=min_fit_clients,
+            min_available_clients=min_available_clients,
+            # evaluate_fn=evaluate_fn,
+            results_folder=results_folder
         )
     else:
         raise ValueError(f"Unknown strategy: {name}")
