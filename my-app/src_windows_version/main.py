@@ -47,7 +47,7 @@ def parse_args():
     parser.add_argument("--data-path", type=str, required=True)
     parser.add_argument("--rounds", type=int, default=5)
     parser.add_argument("--clients", type=int, default=3)
-    parser.add_argument("--strategy", type=str, choices=["sync", "async", "hybrid"], default="sync")
+    parser.add_argument("--strategy", type=str, choices=["sync", "async", "hybrid", "fedavg", "fedprox"], default="sync")
     parser.add_argument("--isolated", action="store_true", 
         help="Run isolated training instead of federated learning")
     # parser.add_argument("--iid", action="store_true")

@@ -36,3 +36,6 @@ Thumbs.db
 # Coverage reports
 htmlcov/
 .coverage
+
+#updated git for results
+my-app/src_windows_version/results/*
