@@ -37,3 +37,5 @@ htmlcov/
 
 #updated git for results
 my-app/src_windows_version/results/*
+
+my-app/src_windows_version/data_explore/1.0.2
