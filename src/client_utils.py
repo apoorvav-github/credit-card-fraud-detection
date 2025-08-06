@@ -18,7 +18,7 @@ from flwr.common import (
 )
 
 from model import FraudDetectionModel
-from sklearn.metrics import roc_auc_score, accuracy_score
+from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score, accuracy_score
 from flwr.common import ndarrays_to_parameters, parameters_to_ndarrays
 
 def get_parameters(net: torch.nn.Module) -> fl.common.Parameters:
@@ -49,6 +49,25 @@ def train(net: nn.Module, loader: DataLoader, epochs: int, device: torch.device)
             loss.backward()
             optimizer.step()
 
+# replaced with precision, recall, f1_score
+# def evaluate_model(net: nn.Module, loader: DataLoader, device: torch.device) -> Tuple[float, Dict[str, float]]:
+#     net.to(device)
+#     net.eval()
+#     ys, ps = [], []
+
+#     with torch.no_grad():
+#         for X, y in loader:
+#             X = X.to(device)
+#             p = net(X).squeeze().cpu().numpy()
+#             ps.extend(p)
+#             ys.extend(y.numpy())
+
+#     auc = roc_auc_score(ys, ps)
+#     acc = accuracy_score(ys, (np.array(ps) > 0.5).astype(int))
+#     loss = 1.0 - auc  # Example loss (could use BCE or other if preferred)
+#     metrics = {"auc": auc, "accuracy": acc}
+#     return loss, metrics
+
 def evaluate_model(net: nn.Module, loader: DataLoader, device: torch.device) -> Tuple[float, Dict[str, float]]:
     net.to(device)
     net.eval()
@@ -61,11 +80,26 @@ def evaluate_model(net: nn.Module, loader: DataLoader, device: torch.device) -> 
             ps.extend(p)
             ys.extend(y.numpy())
 
+    ys = np.array(ys)
+    ps = np.array(ps)
+    preds = (ps > 0.5).astype(int)
+
     auc = roc_auc_score(ys, ps)
-    acc = accuracy_score(ys, (np.array(ps) > 0.5).astype(int))
-    loss = 1.0 - auc  # Example loss (could use BCE or other if preferred)
-    metrics = {"auc": auc, "accuracy": acc}
+    precision = precision_score(ys, preds, average="weighted", zero_division=0)
+    recall = recall_score(ys, preds, average="weighted", zero_division=0)
+    f1 = f1_score(ys, preds, average="weighted", zero_division=0)
+
+    loss = 1.0 - auc  # Example loss (can be replaced with BCE loss if needed)
+
+    metrics = {
+        "auc": auc,
+        "precision": precision,
+        "recall": recall,
+        "f1_score": f1,
+    }
+
     return loss, metrics
+
 
 # ----------------------- Flower Client -----------------------
 
@@ -108,6 +142,7 @@ class FLClient(Client):
     def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
         set_parameters(self.model, ins.parameters)
         loss, metrics = evaluate_model(self.model, self.test_loader, self.device)
+        print(f"called from client")
         return EvaluateRes(
             status=Status(code=Code.OK, message="Success"),
             loss=loss,

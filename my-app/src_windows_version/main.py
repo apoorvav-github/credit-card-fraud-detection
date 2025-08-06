@@ -9,7 +9,7 @@ from model import FraudDetectionModel, get_parameters, set_parameters
 from client_utils import FLClient, train, evaluate_model
 from flwr.common import Context
 from data_utils import load_and_preprocess, split_data
-from strategy import get_strategy
+from strategy import get_strategy, weighted_average
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 
@@ -139,6 +139,9 @@ def main():
     client_train_loaders = {}
     client_test_loaders = {}
 
+    # def wrapped_evaluate_fn(server_round, parameters):
+    #     return evaluate_fn(args.rounds, parameters, central_test, results_folder="results")
+
     for i, dataset in enumerate(client_datasets):
         X_client = dataset.tensors[0].numpy()
         y_client = dataset.tensors[1].numpy()
@@ -163,7 +166,7 @@ def main():
             name=args.strategy,
             min_fit_clients=args.clients,
             min_available_clients=args.clients,
-            # evaluate_fn=evaluate_fn,
+            evaluate_fn=weighted_average,
             results_folder="results"
         )
 

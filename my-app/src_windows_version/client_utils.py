@@ -5,6 +5,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+from sklearn.exceptions import UndefinedMetricWarning
+import warnings
 
 import flwr as fl
 from flwr.common import Parameters
@@ -18,7 +20,7 @@ from flwr.common import (
 )
 
 from model import FraudDetectionModel
-from sklearn.metrics import roc_auc_score, accuracy_score
+from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score, accuracy_score
 from flwr.common import ndarrays_to_parameters, parameters_to_ndarrays
 
 def get_parameters(net: torch.nn.Module) -> fl.common.Parameters:
@@ -37,18 +39,38 @@ def set_parameters(net: torch.nn.Module, parameters: fl.common.Parameters) -> No
 def train(net: nn.Module, loader: DataLoader, epochs: int, device: torch.device):
     net.to(device)
     net.train()
-    criterion = nn.BCELoss()
-    optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
+    criterion = nn.BCEWithLogitsLoss()
+    optimizer = torch.optim.Adam(net.parameters(), lr=1e-4)
 
     for _ in range(epochs):
         for X, y in loader:
             X, y = X.to(device), y.to(device).float()
             optimizer.zero_grad()
-            preds = net(X).squeeze()
+            # preds = net(X).squeeze()
+            preds = net(X).view(-1) 
             loss = criterion(preds, y)
             loss.backward()
             optimizer.step()
 
+# def evaluate_model(net: nn.Module, loader: DataLoader, device: torch.device) -> Tuple[float, Dict[str, float]]:
+#     net.to(device)
+#     net.eval()
+#     ys, ps = [], []
+
+#     with torch.no_grad():
+#         for X, y in loader:
+#             X = X.to(device)
+#             p = net(X).squeeze().cpu().numpy()
+#             ps.extend(p)
+#             ys.extend(y.numpy())
+
+#     auc = roc_auc_score(ys, ps)
+#     acc = accuracy_score(ys, (np.array(ps) > 0.5).astype(int))
+#     loss = 1.0 - auc  # Example loss (could use BCE or other if preferred)
+#     metrics = {"auc": auc, "accuracy": acc}
+#     return loss, metrics
+
+# This I have redefined to include precision, recall, and F1 score: akash
 def evaluate_model(net: nn.Module, loader: DataLoader, device: torch.device) -> Tuple[float, Dict[str, float]]:
     net.to(device)
     net.eval()
@@ -61,10 +83,25 @@ def evaluate_model(net: nn.Module, loader: DataLoader, device: torch.device) -> 
             ps.extend(p)
             ys.extend(y.numpy())
 
+    ys = np.array(ys)
+    ps = np.array(ps)
+    preds = (ps > 0.7).astype(int)
+
     auc = roc_auc_score(ys, ps)
-    acc = accuracy_score(ys, (np.array(ps) > 0.5).astype(int))
-    loss = 1.0 - auc  # Example loss (could use BCE or other if preferred)
-    metrics = {"auc": auc, "accuracy": acc}
+    precision = precision_score(ys, preds, average="macro", zero_division=0)
+    recall = recall_score(ys, preds, average="macro", zero_division=0)
+    f1 = f1_score(ys, preds, average="macro", zero_division=0)
+
+    loss = 1.0 - auc  
+    acc = accuracy_score(ys, (np.array(ps) > 0.7).astype(int))
+    metrics = {
+        "auc": auc,
+        "precision": precision,
+        "recall": recall,
+        "f1_score": f1,
+        "accuracy": acc
+    }
+
     return loss, metrics
 
 # ----------------------- Flower Client -----------------------
@@ -76,8 +113,6 @@ class FLClient(Client):
         self.test_loader = test_loader
         self.device = device
         self.model = FraudDetectionModel()
-        # Initialize model parameters randomly
-        # set_parameters(self.model, get_parameters(self.model))
 
     def get_properties(self, ins: GetPropertiesIns) -> GetPropertiesRes:
         num_samples = len(self.train_loader.dataset)

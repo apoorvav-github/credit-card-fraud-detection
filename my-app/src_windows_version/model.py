@@ -11,7 +11,6 @@ class FraudDetectionModel(nn.Module):
             nn.Linear(hidden_dim, hidden_dim // 2),
             nn.ReLU(),
             nn.Linear(hidden_dim // 2, 1),
-            nn.Sigmoid(),
         )
 
     def forward(self, x):
